@@ -119,20 +119,20 @@ services:
     networks:
       - atlassian
 
-  bamboo_agent:
-    build:
-      context: ./bamboo-agent
-      network: host
-    # the command is only updated if the ./bamboo-agent-home/conf/wrapper.conf is updated manually or the whole home directory removed
-    command: 'http://localhost/bamboo'
-    hostname: bamboo-agent
-    environment:
-      # the token is only updated if the ./bamboo-agent-home/conf/wrapper.conf is updated manually or the whole home directory removed
-      - SECURITY_TOKEN=<your-security-token-here>
-    volumes:
+#  bamboo_agent:
+#    build:
+#      context: ./bamboo-agent
+#      network: host
+    # the command is only updated if the ./bamboo-agent-home/conf/wrapper.conf is updated manually or the whole home directory is removed
+#    command: 'http://localhost/bamboo'
+#    hostname: bamboo-agent
+#    environment:
+      # the token is only updated if the ./bamboo-agent-home/conf/wrapper.conf is updated manually or the whole home directory is removed
+      # - SECURITY_TOKEN=<your-security-token-here>
+#    volumes:
 # put required ssh credentials inside the agent so it is able to connect to bamboo
 #      - ./bamboo-agent-home/.ssh:/home/bamboo/.ssh
-      - ./bamboo-agent-home:/home/bamboo/bamboo-agent-home
+#      - ./bamboo-agent-home:/home/bamboo/bamboo-agent-home
 
 networks:
   atlassian:
