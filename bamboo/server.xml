@@ -63,7 +63,7 @@
                 redirectPort="8443"
 
                 scheme="http"
-                proxyName="195.37.176.146"
+                proxyName="localhost"
                 proxyPort="80">
             <UpgradeProtocol className="org.apache.coyote.http2.Http2Protocol" />
         </Connector>
