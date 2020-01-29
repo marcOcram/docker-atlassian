@@ -1,0 +1,139 @@
+version: '3.4'
+services:
+  nginx:
+    image: nginx:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - atlassian
+
+  postgres:
+    image: postgres:9.6.16
+    restart: unless-stopped
+    expose:
+      - "5432"
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d/
+    environment:
+      - POSTGRES_PASSWORD=<your-postgres-password>
+    networks:
+      - atlassian
+
+  jira:
+    image: atlassian/jira-software:8.6.1
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    expose:
+      - "8080"
+    volumes:
+      - ./jira-home:/var/atlassian/application-data/jira
+    environment:
+      - JVM_MINIMUM_MEMORY=384m
+      - JVM_MAXIMUM_MEMORY=2048m
+      - ATL_JDBC_URL=jdbc:postgresql://postgres:5432/jira
+      - ATL_JDBC_USER=jira
+      - ATL_JDBC_PASSWORD=jira
+      - ATL_DB_DRIVER=org.postgresql.Driver
+      - ATL_DB_TYPE=postgres72
+      - ATL_PROXY_NAME=localhost
+      - ATL_PROXY_PORT=80
+      - ATL_TOMCAT_PORT=8080
+      - ATL_TOMCAT_SCHEME=http
+      - ATL_TOMCAT_CONTEXTPATH=/jira
+    networks:
+      - atlassian
+
+  confluence:
+    image: atlassian/confluence-server:7.2.1
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    expose:
+      - 8090
+    volumes:
+      - ./confluence-home:/var/atlassian/application-data/confluence
+    environment:
+      - JVM_MINIMUM_MEMORY=1024m
+      - JVM_MAXIMUM_MEMORY=1024m
+      - ATL_JDBC_URL=jdbc:postgresql://postgres:5432/confluence
+      - ATL_JDBC_USER=confluence
+      - ATL_JDBC_PASSWORD=confluence
+      - ATL_DB_TYPE=postgresql
+      - ATL_PROXY_NAME=localhost
+      - ATL_PROXY_PORT=80
+      - ATL_TOMCAT_PORT=8090
+      - ATL_TOMCAT_SCHEME=http
+      - ATL_TOMCAT_CONTEXTPATH=/confluence
+    networks:
+      - atlassian
+
+  bitbucket:
+    image: atlassian/bitbucket-server:6.9.1
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    expose:
+      - 7990
+      - 7999
+    ports:
+      - "7999:7999"
+    volumes:
+      - ./bitbucket-home:/var/atlassian/application-data/bitbucket
+    environment:
+      - JVM_MINIMUM_MEMORY=512m
+      - JVM_MAXIMUM_MEMORY=1024m
+      - JDBC_URL=jdbc:postgresql://postgres:5432/bitbucket
+      - JDBC_USER=bitbucket
+      - JDBC_PASSWORD=bitbucket
+      - JDBC_DRIVER=org.postgresql.Driver
+      - SERVER_PROXY_NAME=localhost
+      - SERVER_PROXY_PORT=80
+      - SERVER_SCHEME=http
+      - SERVER_SECURE=false
+      # contextpath is added in <bitbucket home directory>/shared/bitbucket.properties
+    networks:
+      - atlassian
+
+  bamboo:
+    image: atlassian/bamboo-server:6.10.4
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    expose:
+      - 8085
+      - 54663
+    ports:
+      - "54663:54663"
+    volumes:
+      - ./bamboo/server.xml:/opt/atlassian/bamboo/conf/server.xml
+      - ./bamboo-home:/var/atlassian/application-data/bamboo
+    environment:
+      - JVM_MINIMUM_MEMORY=512m
+      - JVM_MAXIMUM_MEMORY=1024m
+# database configuration inside home directory of bamboo 
+    networks:
+      - atlassian
+
+  bamboo_agent:
+    build:
+      context: ./bamboo-agent
+      network: host
+    # the command is only updated if the ./bamboo-agent-home/conf/wrapper.conf is updated manually or the whole home directory removed
+    command: 'http://localhost/bamboo'
+    hostname: bamboo-agent
+    environment:
+      # the token is only updated if the ./bamboo-agent-home/conf/wrapper.conf is updated manually or the whole home directory removed
+      - SECURITY_TOKEN=<your-security-token-here>
+    volumes:
+# put required ssh credentials inside the agent so it is able to connect to bamboo
+#      - ./bamboo-agent-home/.ssh:/home/bamboo/.ssh
+      - ./bamboo-agent-home:/home/bamboo/bamboo-agent-home
+
+networks:
+  atlassian:
+    driver: bridge

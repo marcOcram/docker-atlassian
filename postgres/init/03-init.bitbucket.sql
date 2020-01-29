@@ -1,0 +1,11 @@
+CREATE ROLE bitbucket WITH
+	LOGIN
+	PASSWORD 'bitbucket';
+
+CREATE DATABASE bitbucket WITH
+	ENCODING 'UTF8'
+	LC_COLLATE 'C'
+	LC_CTYPE 'C'
+	TEMPLATE template0;
+
+GRANT ALL PRIVILEGES ON DATABASE bitbucket TO bitbucket;

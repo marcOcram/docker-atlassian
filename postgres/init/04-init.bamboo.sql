@@ -1,0 +1,7 @@
+CREATE ROLE bamboo WITH
+	LOGIN
+	PASSWORD 'bamboo';
+
+CREATE DATABASE bamboo;
+
+GRANT ALL PRIVILEGES ON DATABASE bamboo TO bamboo;
