@@ -123,6 +123,7 @@ services:
 #    build:
 #      context: ./bamboo-agent
 #      network: host
+#    restart: unless-stopped
     # the command is only updated if the ./bamboo-agent-home/conf/wrapper.conf is updated manually or the whole home directory is removed
 #    command: 'http://localhost/bamboo'
 #    hostname: bamboo-agent
